@@ -316,25 +316,3 @@ class ConflictGraph(object):
         
         return self.mod.getAttr(GRB.Attr.ObjVal), xbar
         
-    
-#-----------------------------------------------
-# MAIN function
-#-----------------------------------------------
-if __name__ == "__main__":
-
-    # G = Cubic(50)
-    G = BuildRandomGraph(35, 0.5)
-    # G = nx.Graph()
-    # G.add_edge(0,1)
-    # G.add_edge(1,2)
-    # G.add_edge(0,2)
-    
-    # PlotGraph(G)
-    # nu5, it5 = TotalMatchingOneAtTime(G, 'conflict')
-
-    # nu1, it1 = TotalMatchingOneAtTime(G, 'clique')
-    nu2, it2 = TotalMatchingOneAtTime(G, '2k3-cycle')
-    # nu3, it3 = TotalMatchingOneAtTime(G, 'odd-clique')
-    # nu4, it4 = TotalMatchingRel(G)
-    # logging.info(" v(G) = {:.3f} {:.3f} {:.3f} {:.3f} {} {} {} {}".format(
-    #     nu1, nu2, nu3, nu4, it1, it2, it3, it4))
