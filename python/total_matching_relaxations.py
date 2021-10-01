@@ -9,6 +9,7 @@ from gurobipy import Model, quicksum, GRB
 from graph_tools import SafeFloor, BuildRandomGraph, PlotGraph, Cubic
 
 import logging
+import networkx as nx
 
 logging.basicConfig(filename='match.log', level=logging.DEBUG)
 
@@ -116,7 +117,7 @@ def TotalMatchingRel(G):
                         break
 
     print(sum(x[v].X for v in x), sum(y[e].X for e in y))
-    return obj, xbar
+    return obj, it
 
 
 def TotalMatchingOneAtTime(G, method):
@@ -187,6 +188,7 @@ def TotalMatchingOneAtTime(G, method):
                     mod.addConstr(quicksum(x[v] for v in clique) <= 1)
                 else:
                     break
+                
             if method == 'odd-clique':
                 sep, xb, yb, zb = OddClique(G, xbar, ybar)
                 if sep > 0.01:
@@ -197,6 +199,7 @@ def TotalMatchingOneAtTime(G, method):
                                                          for e in yb) <= zb)
                 else:
                     break
+                
             if method == '2k3-cycle':
                 ObjC, xc, yc = Sep2k3Cycle(G, xbar, ybar)
                 Cx = [i for i in xc if xc[i] > 0.5]
@@ -210,8 +213,18 @@ def TotalMatchingOneAtTime(G, method):
                 else:
                     break
 
+            if method == 'conflict':
+                sep, clique = ConflictGraph(G, xbar, ybar)
+                if sep > 1.01:
+                    # print('clique', sep)
+                    I = [v for v in clique if type(v) == int]
+                    J = [v for v in clique if type(v) != int]
+                    mod.addConstr(quicksum(x[v] for v in I) + quicksum(y[e] for e in J) <= 1)
+                else:
+                    break
+
     print(sum(x[v].X for v in x), sum(y[e].X for e in y))
-    return obj, xbar
+    return obj, it
 
 
 #-----------------------------------------------------------------------------
@@ -393,25 +406,36 @@ def ConflictGraph(G, xbar, ybar):
     # Build conflict graph
     H = nx.Graph()
 
+    idx = 0
+    V = {}
+    W = {}
     for v in xbar:
-        H.add_node(v, weight=xbar[v])
-
+        H.add_node(idx, weight=xbar[v])
+        V[v] = idx
+        W[idx] = v
+        idx += 1
+        
     for e in ybar:
-        H.add_node(e, weight=ybar[e])
-
+        H.add_node(idx, weight=ybar[e])
+        V[e] = idx
+        V[e[1], e[0]] = idx
+        W[idx] = e
+        idx += 1
+        
     for e in G.edges():
+        f = e
         i, j = e
         if j < i:
-            i, j = j, i
-        H.add_edge(i, j)
-        H.add_edge(e, j)
-        H.add_edge(e, i)
+            f = j, i
+        H.add_edge(V[i], V[j])
+        H.add_edge(V[f], V[j])
+        H.add_edge(V[f], V[i])
 
     for v in G.nodes():
         for e in G.edges(v):
             for f in G.edges(v):
                 if e < f:
-                    H.add_edge(e, f)
+                    H.add_edge(V[e], V[f])
 
     # Maximal cliques on the conflict graph
     mod = Model()
@@ -424,7 +448,7 @@ def ConflictGraph(G, xbar, ybar):
     # Create variables
     x = {}
     for i in H.nodes():
-        x[i] = mod.addVar(obj=H[i]['weight'] + 0.0000001, vtype=GRB.BINARY)
+        x[i] = mod.addVar(obj=H.nodes[i]['weight'] + 0.0000001, vtype=GRB.BINARY)
 
     mod.update()
 
@@ -440,8 +464,8 @@ def ConflictGraph(G, xbar, ybar):
         return 0, []
 
     obj = mod.getAttr(GRB.Attr.ObjVal)
-    xbar = [v for v in x if x[v].X > 0.5]
-    print(xbar)
+    xbar = [W[v] for v in x if x[v].X > 0.5]
+    print(obj, xbar)
 
     return obj, xbar
 
@@ -451,14 +475,19 @@ def ConflictGraph(G, xbar, ybar):
 #-----------------------------------------------
 if __name__ == "__main__":
 
-    G = Cubic(76)
-    # G = BuildRandomGraph(50, 0.1)
-
+    # G = Cubic(50)
+    G = BuildRandomGraph(50, 0.3)
+    # G = nx.Graph()
+    # G.add_edge(0,1)
+    # G.add_edge(1,2)
+    # G.add_edge(0,2)
+    
     # PlotGraph(G)
+    nu5, it5 = TotalMatchingOneAtTime(G, 'conflict')
 
     nu1, it1 = TotalMatchingOneAtTime(G, 'clique')
-    nu2, it2 = TotalMatchingOneAtTime(G, '2k3-cycle')
-    nu3, it3 = TotalMatchingOneAtTime(G, 'odd-clique')
-    nu4, it4 = TotalMatchingRel(G)
-    logging.info(" v(G) = {:.3f} {:.3f} {:.3f} {:.3f} {} {} {} {}".format(
-        nu1, nu2, nu3, nu4, it1, it2, it3, it4))
+    # nu2, it2 = TotalMatchingOneAtTime(G, '2k3-cycle')
+    # nu3, it3 = TotalMatchingOneAtTime(G, 'odd-clique')
+    # nu4, it4 = TotalMatchingRel(G)
+    # logging.info(" v(G) = {:.3f} {:.3f} {:.3f} {:.3f} {} {} {} {}".format(
+    #     nu1, nu2, nu3, nu4, it1, it2, it3, it4))
