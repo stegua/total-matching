@@ -78,7 +78,12 @@ class OddClique(object):
     
         y = {}
         for e in G.edges():
-            y[e] = mod.addVar(obj=0.0, vtype=GRB.BINARY)
+            i, j = e
+            if j < i:
+                f = j, i
+            else:
+                f = i, j
+            y[f] = mod.addVar(obj=0.0, vtype=GRB.BINARY)
     
         z = mod.addVar(obj=-1, lb=0, ub=len(G.nodes()) // 2, vtype=GRB.INTEGER)
     

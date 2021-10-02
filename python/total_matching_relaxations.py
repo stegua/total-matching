@@ -13,7 +13,10 @@ from graph_mips import MIP_StableSet, MIP_TotalMatching
 import logging
 import networkx as nx
 
-logging.basicConfig(filename='match.log', level=logging.DEBUG)
+logging.basicConfig(filename='match.log', 
+                    level=logging.DEBUG,
+                    format='%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S')
 
 INT_TOL = 1e-06
 
@@ -249,21 +252,54 @@ def TotalMatchingOneAtTime(G, method):
 #-----------------------------------------------
 if __name__ == "__main__":
 
-    # G = Cubic(50)
-    G = BuildRandomGraph(35, 0.5)
-    # G = nx.Graph()
-    # G.add_edge(0,1)
-    # G.add_edge(1,2)
-    # G.add_edge(0,2)
+    if False:
+        # Test su grafi cubici
+        for n in [80, 100]:
+            for s in [67, 71, 73, 79, 83, 101, 103, 107, 109, 113]:
+                G = Cubic(n, s)
+                mu = MaxMatching(G)
+                al = MIP_StableSet(G)
+                mt = MIP_TotalMatching(G)
+                nu1, it1 = TotalMatchingOneAtTime(G, 'clique')
+                nu2, it2 = TotalMatchingOneAtTime(G, '2k3-cycle')
+                nu3, it3 = TotalMatchingOneAtTime(G, 'odd-clique')
+                nu4, it4 = TotalMatchingRel(G)
+                logging.info(" cubic s {} n {} m {} v(G) = {}, alpha(G) = {}, vt(G) = {}, UB(G) = {:.3f} {:.3f} {:.3f} {:.3f} {} {} {} {}".format(
+                    s, len(G.nodes()), len(G.edges()), len(mu), al[0], mt[0], nu1, nu2, nu3, nu4, it1, it2, it3, it4))
+                
+        # Test su grafi random
+        for n in [80, 100]:
+            for d in [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]:
+                for s in [67, 71, 73, 79, 83, 101, 103, 107, 109, 113]:
+                    G = BuildRandomGraph(n, d, s)
+                    mu = MaxMatching(G)
+                    al = MIP_StableSet(G)
+                    mt = MIP_TotalMatching(G)
+                    nu1, it1 = TotalMatchingOneAtTime(G, 'clique')
+                    nu2, it2 = TotalMatchingOneAtTime(G, '2k3-cycle')
+                    nu3, it3 = TotalMatchingOneAtTime(G, 'odd-clique')
+                    nu4, it4 = TotalMatchingRel(G)
+                    logging.info(" random s {} n {} m {} v(G) = {}, alpha(G) = {}, vt(G) = {}, UB(G) = {:.3f} {:.3f} {:.3f} {:.3f} {} {} {} {}".format(
+                        s, len(G.nodes()), len(G.edges()), len(mu), al[0], mt[0], nu1, nu2, nu3, nu4, it1, it2, it3, it4))
+         
+    if True:
+        G = Cubic(50, 17)
+        # G = BuildRandomGraph(35, 0.5)
+        # G = nx.Graph()
+        # G.add_edge(0,1)
+        # G.add_edge(1,2)
+        # G.add_edge(0,2)
+        
+        # PlotGraph(G)
     
-    # PlotGraph(G)
+        mu = MaxMatching(G)
+        al = MIP_StableSet(G)
+        mt = MIP_TotalMatching(G)
+        nu1, it1 = TotalMatchingOneAtTime(G, 'clique')
+        nu2, it2 = TotalMatchingOneAtTime(G, '2k3-cycle')
+        nu3, it3 = TotalMatchingOneAtTime(G, 'odd-clique')
+        nu4, it4 = TotalMatchingRel(G)
+        logging.info(" n {} m {} v(G) = {}, alpha(G) = {}, vt(G) = {}, UB(G) = {:.3f} {:.3f} {:.3f} {:.3f} {} {} {} {}".format(
+            len(G.nodes()), len(G.edges()), len(mu), al[0], mt[0], nu1, nu2, nu3, nu4, it1, it2, it3, it4))
 
-    mu = MaxMatching(G)
-    al = MIP_StableSet(G)
-    mt = MIP_TotalMatching(G)
-    nu1, it1 = TotalMatchingOneAtTime(G, 'clique')
-    nu2, it2 = TotalMatchingOneAtTime(G, '2k3-cycle')
-    nu3, it3 = TotalMatchingOneAtTime(G, 'odd-clique')
-    nu4, it4 = TotalMatchingRel(G)
-    logging.info("v(G) = {:.1}, alpha(G) = {:.1}, vt(G) = {:.1}, UB(G) = {:.3f} {:.3f} {:.3f} {:.3f} {} {} {} {}".format(
-        mu, al, mt, nu1, nu2, nu3, nu4, it1, it2, it3, it4))
+    logging.shutdown()
