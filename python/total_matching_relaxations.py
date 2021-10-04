@@ -13,10 +13,12 @@ from graph_mips import MIP_StableSet, MIP_TotalMatching
 import logging
 import networkx as nx
 
-logging.basicConfig(filename='match.log', 
-                    level=logging.DEBUG,
-                    format='%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s',
-                    datefmt='%Y-%m-%d %H:%M:%S')
+logging.basicConfig(
+    filename='match.log',
+    level=logging.DEBUG,
+    format=
+    '%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S')
 
 INT_TOL = 1e-06
 
@@ -60,11 +62,10 @@ def TotalMatchingRel(G):
         mod.addConstr(x[i] + x[j] + y[e] <= 1)
 
     SeparatorClique = SepClique(G)
-    
-    SeparatorOddClique = OddClique(G)
-        
-    Separator2k3Cycle = Sep2k3Cycle(G)
 
+    SeparatorOddClique = OddClique(G)
+
+    Separator2k3Cycle = Sep2k3Cycle(G)
 
     it = 0
     UB = len(x) + len(y)
@@ -170,16 +171,16 @@ def TotalMatchingOneAtTime(G, method):
 
     if method == 'clique':
         Separator = SepClique(G)
-    
+
     if method == 'conflict':
         Separator = ConflictGraph(G)
-    
+
     if method == 'odd-clique':
         Separator = OddClique(G)
-        
+
     if method == '2k3-cycle':
         Separator = Sep2k3Cycle(G)
-        
+
     it = 0
     UB = len(x) + len(y)
     while it <= 1000:
@@ -208,7 +209,7 @@ def TotalMatchingOneAtTime(G, method):
                     mod.addConstr(quicksum(x[v] for v in clique) <= 1)
                 else:
                     break
-                
+
             if method == 'odd-clique':
                 sep, xb, yb, zb = Separator.solve(xbar, ybar)
                 if sep > 0.01:
@@ -219,7 +220,7 @@ def TotalMatchingOneAtTime(G, method):
                                                          for e in yb) <= zb)
                 else:
                     break
-                
+
             if method == '2k3-cycle':
                 ObjC, xc, yc = Separator.solve(xbar, ybar)
                 Cx = [i for i in xc if xc[i] > 0.5]
@@ -239,20 +240,21 @@ def TotalMatchingOneAtTime(G, method):
                     # print('clique', sep)
                     I = [v for v in clique if type(v) == int]
                     J = [v for v in clique if type(v) != int]
-                    mod.addConstr(quicksum(x[v] for v in I) + quicksum(y[e] for e in J) <= 1)
+                    mod.addConstr(
+                        quicksum(x[v] for v in I) + quicksum(y[e]
+                                                             for e in J) <= 1)
                 else:
                     break
 
     return obj, it
 
 
-            
 #-----------------------------------------------
 # MAIN function
 #-----------------------------------------------
 if __name__ == "__main__":
 
-    if False:
+    if True:
         # Test su grafi cubici
         for n in [80, 100]:
             for s in [67, 71, 73, 79, 83, 101, 103, 107, 109, 113]:
@@ -264,9 +266,11 @@ if __name__ == "__main__":
                 nu2, it2 = TotalMatchingOneAtTime(G, '2k3-cycle')
                 nu3, it3 = TotalMatchingOneAtTime(G, 'odd-clique')
                 nu4, it4 = TotalMatchingRel(G)
-                logging.info(" cubic s {} n {} m {} v(G) = {}, alpha(G) = {}, vt(G) = {}, UB(G) = {:.3f} {:.3f} {:.3f} {:.3f} {} {} {} {}".format(
-                    s, len(G.nodes()), len(G.edges()), len(mu), al[0], mt[0], nu1, nu2, nu3, nu4, it1, it2, it3, it4))
-                
+                logging.info(
+                    " cubic s {} n {} m {} v(G) = {}, alpha(G) = {}, vt(G) = {}, UB(G) = {:.3f} {:.3f} {:.3f} {:.3f} {} {} {} {}"
+                    .format(s, len(G.nodes()), len(G.edges()), len(mu), al[0],
+                            mt[0], nu1, nu2, nu3, nu4, it1, it2, it3, it4))
+
         # Test su grafi random
         for n in [80, 100]:
             for d in [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]:
@@ -279,19 +283,22 @@ if __name__ == "__main__":
                     nu2, it2 = TotalMatchingOneAtTime(G, '2k3-cycle')
                     nu3, it3 = TotalMatchingOneAtTime(G, 'odd-clique')
                     nu4, it4 = TotalMatchingRel(G)
-                    logging.info(" random s {} n {} m {} v(G) = {}, alpha(G) = {}, vt(G) = {}, UB(G) = {:.3f} {:.3f} {:.3f} {:.3f} {} {} {} {}".format(
-                        s, len(G.nodes()), len(G.edges()), len(mu), al[0], mt[0], nu1, nu2, nu3, nu4, it1, it2, it3, it4))
-         
-    if True:
+                    logging.info(
+                        " random s {} n {} m {} v(G) = {}, alpha(G) = {}, vt(G) = {}, UB(G) = {:.3f} {:.3f} {:.3f} {:.3f} {} {} {} {}"
+                        .format(s, len(G.nodes()), len(G.edges()), len(mu),
+                                al[0], mt[0], nu1, nu2, nu3, nu4, it1, it2,
+                                it3, it4))
+
+    if False:
         G = Cubic(50, 17)
         # G = BuildRandomGraph(35, 0.5)
         # G = nx.Graph()
         # G.add_edge(0,1)
         # G.add_edge(1,2)
         # G.add_edge(0,2)
-        
+
         # PlotGraph(G)
-    
+
         mu = MaxMatching(G)
         al = MIP_StableSet(G)
         mt = MIP_TotalMatching(G)
@@ -299,7 +306,9 @@ if __name__ == "__main__":
         nu2, it2 = TotalMatchingOneAtTime(G, '2k3-cycle')
         nu3, it3 = TotalMatchingOneAtTime(G, 'odd-clique')
         nu4, it4 = TotalMatchingRel(G)
-        logging.info(" n {} m {} v(G) = {}, alpha(G) = {}, vt(G) = {}, UB(G) = {:.3f} {:.3f} {:.3f} {:.3f} {} {} {} {}".format(
-            len(G.nodes()), len(G.edges()), len(mu), al[0], mt[0], nu1, nu2, nu3, nu4, it1, it2, it3, it4))
+        logging.info(
+            " n {} m {} v(G) = {}, alpha(G) = {}, vt(G) = {}, UB(G) = {:.3f} {:.3f} {:.3f} {:.3f} {} {} {} {}"
+            .format(len(G.nodes()), len(G.edges()), len(mu), al[0], mt[0], nu1,
+                    nu2, nu3, nu4, it1, it2, it3, it4))
 
     logging.shutdown()
