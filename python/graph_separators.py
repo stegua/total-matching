@@ -128,7 +128,7 @@ class OddClique(object):
         self.mod.optimize()
 
         if self.mod.Status != GRB.OPTIMAL:
-            return 0, []
+            return 0, [], [], 0
    
         xbar = [v for v in self.x if self.x[v].X > 0.5]
         ybar = [e for e in self.y if self.y[e].X > 0.5]
@@ -240,7 +240,7 @@ class Sep2k3Cycle(object):
         self.mod.optimize()
 
         if self.mod.Status != GRB.OPTIMAL:
-            return 0, []
+            return 0, [], []
    
         xbar = self.mod.getAttr('x', self.x)
         ybar = self.mod.getAttr('x', self.y)
