@@ -13,8 +13,9 @@ __all__ = [
     'SepClique', 'OddClique', 'Sep2k3Cycle', 'ConflictGraph'
 ]
 
-
 from gurobipy import Model, quicksum, GRB
+
+import networkx as nx
 
 INT_TOL = 1e-06
 
@@ -45,8 +46,11 @@ class SepClique(object):
         self.mod = mod
         self.x = x
         
-    def solve(self, xbar):
+    def solve(self, xbar, timelimit=3600):
         """ Solve single separation problem """
+        
+        self.mod.setParam(GRB.Param.TimeLimit, timelimit)
+
         for v in xbar:
             self.x[v].setAttr(GRB.Attr.Obj, max(0.0, xbar[v]))
                         
@@ -110,8 +114,11 @@ class OddClique(object):
         self.z = z
         
         
-    def solve(self, xbar, ybar):
+    def solve(self, xbar, ybar, timelimit=3600):
         """ Solve single separation problem """
+        
+        self.mod.setParam(GRB.Param.TimeLimit, timelimit)
+
         for v in xbar:
             self.x[v].setAttr(GRB.Attr.Obj, max(0.0, xbar[v]))
         
@@ -219,8 +226,11 @@ class Sep2k3Cycle(object):
         self.y = y
         
         
-    def solve(self, xbar, ybar):
+    def solve(self, xbar, ybar, timelimit=3600):
         """ Solve single separation problem """
+        
+        self.mod.setParam(GRB.Param.TimeLimit, timelimit)
+
         for v in xbar:
             self.x[v].setAttr(GRB.Attr.Obj, max(0.0, xbar[v]))
         
@@ -303,9 +313,11 @@ class ConflictGraph(object):
         self.V = V
         
         
-    def solve(self, xbar, ybar):
+    def solve(self, xbar, ybar, timelimit=3600):
         """ Solve single separation problem """
         
+        self.mod.setParam(GRB.Param.TimeLimit, timelimit)
+
         for v in xbar:
             self.x[self.V[v]].setAttr(GRB.Attr.Obj, max(0.0, xbar[v]))
             
