@@ -26,18 +26,22 @@ def SafeFloor(x, eps=0.01):
     else:
         return int(floor(x))
 
+
 def Cubic(n, _seed=17):
     """ Return a cubic graph on 'n' nodes """
     seed(_seed)
     return nx.generators.random_graphs.random_regular_graph(3, n)
 
+
 def BuildRandomGraph(n, d=0.5, s=13):
     """ Return a random graph with 'n' nodes and expected density 'd' """
     return nx.erdos_renyi_graph(n, d, seed=s)
 
+
 def PlotGraph(G):
     """ Plot graph 'G' with a circular layout """
     nx.draw(G, pos=nx.circular_layout(G))
+
 
 def PlotMatching(G, Vs, Es):
     """ Plot in red the total matching given by 'Vs' and 'Es' on graph 'G' """
@@ -62,6 +66,25 @@ def PlotMatching(G, Vs, Es):
 
     nx.draw(H, pos=nx.circular_layout(G), node_color=vcols,
             edge_color=colors, width=weights, with_labels=True)
+
+
+def ParseGraph(filename, path=''):
+    """ Parse a graph from the House of Graph 
+        (https://hog.grinvin.org/ViewGraphInfo.action?id=6728) 
+    """
+    fh = open(path+filename, 'r', encoding="utf-8")
+    
+    G = nx.Graph()
+    
+    for row in fh:
+        if len(row) > 1:
+            line = list(map(int, row.replace('\n','').replace(':','').split(' ')))        
+            i = line[0]
+            for j in line[1:]:
+                G.add_edge(i-1, j-1)        
+        
+    return G, filename.split('.')[0]
+
 
 def MaxMatching(G):
     """ Return a maximum matching in 'G' """

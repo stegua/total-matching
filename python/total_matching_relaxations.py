@@ -6,7 +6,7 @@ Created on Fri Sep 24 18:30:01 2021
 """
 
 from gurobipy import Model, quicksum, GRB
-from graph_tools import SafeFloor, BuildRandomGraph, PlotGraph, Cubic, MaxMatching
+from graph_tools import SafeFloor, BuildRandomGraph, Cubic, MaxMatching, ParseGraph
 from graph_separators import SepClique, OddClique, Sep2k3Cycle, ConflictGraph
 from graph_mips import MIP_StableSet, MIP_TotalMatching
 
@@ -314,9 +314,9 @@ def TotalMatchingLB(G, timelimit=3600):
 #-----------------------------------------------
 if __name__ == "__main__":
 
-    if True:
+    if False:
         logging.basicConfig(
-            filename='cubic.log',
+            filename='cubicUB.log',
             level=logging.DEBUG,
             format=
             '%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s',
@@ -341,14 +341,14 @@ if __name__ == "__main__":
 
     if False:
         logging.basicConfig(
-            filename='random.log',
+            filename='randomUB.log',
             level=logging.DEBUG,
             format=
             '%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s',
             datefmt='%Y-%m-%d %H:%M:%S')
         # Test su grafi random
-        for n in [80, 100]:
-            for d in [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]:
+        for n in [80]:
+            for d in [0.05, 0.1, 0.15, 0.2, 0.25]:
                 for s in [67, 71, 73, 79, 83, 101, 103, 107, 109, 113]:
                     G = BuildRandomGraph(n, d, s)
                     mu = MaxMatching(G)
@@ -365,6 +365,40 @@ if __name__ == "__main__":
                         .format(s, len(G.nodes()), len(G.edges()), len(mu),
                                 al[0], mt[0], lb0, nu1, nu2, nu3, nu4, nu5, it1, it2, it3, it4, it5, t1, t2, t3, t4, t5))
 
+    if True:
+        logging.basicConfig(
+            filename='housegraphs.log',
+            level=logging.DEBUG,
+            format=
+            '%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s',
+            datefmt='%Y-%m-%d %H:%M:%S')
+
+        # House of Graphs
+        HoG = ['graph_6630.lst', 'graph_6710.lst', 'graph_6714.lst', 
+                'graph_6720.lst', 'graph_6724.lst', 'graph_6728.lst', 
+                'graph_6708.lst', 'graph_6712.lst', 'graph_6718.lst', 
+                'graph_6722.lst', 'graph_6726.lst']
+    
+        Gs = list(map(lambda x: ParseGraph(x, "..\\data\\"), HoG))
+    
+        # Total matching
+        for G, name in Gs:
+            mu = MaxMatching(G)
+            al = MIP_StableSet(G)
+            mt = MIP_TotalMatching(G)
+            lb0 = TotalMatchingLB(G)
+            nu1, it1, t1 = TotalMatchingOneAtTime(G, 'clique')
+            nu2, it2, t2 = TotalMatchingOneAtTime(G, '2k3-cycle')
+            nu3, it3, t3 = TotalMatchingOneAtTime(G, 'odd-clique')
+            nu4, it4, t4 = TotalMatchingRel(G)
+            nu5, it5, t5 = TotalMatchingOneAtTime(G, 'conflict')
+            logging.info(
+                " {} n {} m {} v(G) {} alpha(G) {} vt(G) {} UB(G) {:.3f} {:.3f} {:.3f} {:.3f} {:.3f} {:.3f} {} {} {} {} {} {:.2f} {:.2f} {:.2f} {:.2f} {:.2f}"
+                .format(name, len(G.nodes()), len(G.edges()), len(mu),
+                        al[0], mt[0], lb0, nu1, nu2, nu3, nu4, nu5, it1, it2, it3, it4, it5, t1, t2, t3, t4, t5))
+            
+            
+            
     if False:
         G = Cubic(50, 17)
         # G = BuildRandomGraph(35, 0.5)
